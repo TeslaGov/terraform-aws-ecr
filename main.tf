@@ -45,9 +45,12 @@ data "aws_iam_policy_document" "this" {
   && try(length(v.repository_policy) > 0, false) }
 
   statement {
-    actions    = each.value.repository_policy.statement.actions
-    resources  = each.value.repository_policy.statement.resources
-    principals = each.value.repository_policy.statement.principals
+    actions   = each.value.repository_policy.statement.actions
+    resources = each.value.repository_policy.statement.resources
+    principals {
+      type        = each.value.repository_policy.statement.principals.type
+      identifiers = each.value.repository_policy.statement.principals.identifiers
+    }
   }
 }
 
