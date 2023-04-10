@@ -1,6 +1,6 @@
 locals {
   defaults = {
-    scan_on_push         = true
+    scan_on_push = true
     # The tag mutability setting for the repository. Must be one of: MUTABLE or IMMUTABLE. Defaults to MUTABLE.
     image_tag_mutability = "MUTABLE"
   }
@@ -29,10 +29,28 @@ resource "aws_ecr_repository" "this" {
 resource "aws_ecr_lifecycle_policy" "this" {
 
   for_each = { for k, v in var.ecrs : k => v if lookup(v, "lifecycle_policy", null) != null
-    && try(length(v.lifecycle_policy) > 0, false) }
+  && try(length(v.lifecycle_policy) > 0, false) }
 
   repository = aws_ecr_repository.this[each.key].id
   policy     = jsonencode(each.value.lifecycle_policy)
 
   depends_on = [aws_ecr_repository.this]
+}
+
+# repository resource policy
+# this is optional and allows you to set additional restrictions/perms at the repo level
+# in addition to setting IAM perms at the user/group level
+data "aws_iam_policy_document" "this" {
+  for_each = { for k, v in var.ecrs : k => v if lookup(v, "repository_policy", null) != null
+  && try(length(v.repository_policy) > 0, false) }
+
+  statement = each.value.repository_policy.statement
+}
+
+resource "aws_ecr_repository_policy" "this" {
+  for_each = { for k, v in var.ecrs : k => v if lookup(v, "repository_policy", null) != null
+  && try(length(v.repository_policy) > 0, false) }
+
+  repository = aws_ecr_repository.this.name
+  policy     = data.aws_iam_policy_document.this.json
 }
