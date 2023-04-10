@@ -44,7 +44,11 @@ data "aws_iam_policy_document" "this" {
   for_each = { for k, v in var.ecrs : k => v if lookup(v, "repository_policy", null) != null
   && try(length(v.repository_policy) > 0, false) }
 
-  json = jsonencode(each.value.repository_policy.statement)
+  statement {
+    actions    = each.value.repository_policy.statement.actions
+    resources  = each.value.repository_policy.statement.resources
+    principals = each.value.repository_policy.statement.principals
+  }
 }
 
 resource "aws_ecr_repository_policy" "this" {
