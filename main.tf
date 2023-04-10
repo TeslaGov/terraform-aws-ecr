@@ -47,6 +47,7 @@ data "aws_iam_policy_document" "this" {
   statement {
     actions   = each.value.repository_policy.statement.actions
     resources = each.value.repository_policy.statement.resources
+    effect    = each.value.repository_policy.statement.effect
     principals {
       type        = each.value.repository_policy.statement.principals.type
       identifiers = each.value.repository_policy.statement.principals.identifiers
